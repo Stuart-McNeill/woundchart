@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NHS Greater Glasgow & Clyde - Adult Wound Assessment and Healing Chart</title>
+    <style>
+        :root {
+            --nhs-blue: #005eb8;
+            --nhs-dark-blue: #003087;
+            --nhs-pale-blue: #f0f4f5;
+            --nhs-grey: #4c6272;
+            --nhs-border: #cbd5e1;
+            --border-radius: 12px;
+            --transition-speed: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f1f5f9;
+            color: #0f172a;
+            line-height: 1.6;
+            padding: 40px 20px;
+        }
+
+        .app-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Modern App Header */
+        .app-header {
+            background: linear-gradient(135deg, var(--nhs-dark-blue), var(--nhs-blue));
+            color: white;
+            padding: 30px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .app-header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .app-header p {
+            font-size: 13px;
+            opacity: 0.85;
+            margin-top: 4px;
+        }
+
+        .badge {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(4px);
+            padding: 8px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Interactive Wizard Progress Steps */
+        .wizard-progress {
+            display: flex;
+            justify-content: space-between;
+            background: #f8fafc;
+            padding: 20px 40px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .progress-step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            outline: none;
+        }
+
+        .step-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            transition: all var(--transition-speed);
+        }
+
+        .step-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #64748b;
+            transition: color var(--transition-speed);
+            display: none;
+        }
+
+        @media (min-width: 768px) {
+            .step-label { display: block; }
+        }
+
+        .progress-step.active .step-number {
+            background: var(--nhs-blue);
+            color: white;
+            box-shadow: 0 0 0 4px rgba(0, 94, 184, 0.15);
+        }
+
+        .progress-step.active .step-label {
+            color: var(--nhs-dark-blue);
+        }
+
+        .progress-step.completed .step-number {
+            background: #10b981;
+            color: white;
+        }
+
+        .progress-step.completed .step-label {
+            color: #059669;
+        }
+
+        /* Section Panels */
+        .form-section-content {
+            display: none;
+            padding: 40px;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        .form-section-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            font-size: 18px;
+            color: var(--nhs-dark-blue);
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        p.instruction-text {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 25px;
+        }
+
+        /* Modern Grid Systems */
+        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+
+        @media (max-width: 768px) {
+            .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: #334155;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="time"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--nhs-border);
+            border-radius: 8px;
+            font-size: 14px;
+            background: #ffffff;
+            color: #0f172a;
+            transition: all var(--transition-speed);
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--nhs-blue);
+            box-shadow: 0 0 0 4px rgba(0, 94, 184, 0.12);
+        }
+
+        textarea {
+            resize: vertical;
+            height: 100px;
+        }
+
+        /* Card Checkboxes */
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .checkbox-card {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background: #f8fafc;
+            border: 1px solid var(--nhs-border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .checkbox-card:hover {
+            background: #f1f5f9;
+            border-color: var(--nhs-blue);
+            transform: translateY(-1px);
+        }
+
+        .checkbox-card input {
+            margin-right: 12px;
+            transform: scale(1.25);
+            accent-color: var(--nhs-blue);
+        }
+
+        /* Body Map Layout */
+        .body-map-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 20px;
+            background: #f8fafc;
+            border: 1px solid var(--nhs-border);
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .svg-box svg {
+            width: 110px;
+            height: 150px;
+            background: #fff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            margin-top: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+        }
+
+        /* Modern Tables */
+        .modern-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 15px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--nhs-border);
+        }
+
+        .modern-table th, .modern-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 13px;
+            text-align: left;
+        }
+
+        .modern-table tr:last-child td { border-bottom: none; }
+
+        .modern-table th {
+            background-color: #f8fafc;
+            font-weight: 700;
+            color: var(--nhs-dark-blue);
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Wizard Footer Controls */
+        .wizard-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 40px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            border: none;
+            transition: all var(--transition-speed);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:active { transform: scale(0.98); }
+
+        .btn-primary {
+            background-color: var(--nhs-blue);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 94, 184, 0.2);
+        }
+        .btn-primary:hover { background-color: var(--nhs-dark-blue); }
+
+        .btn-secondary {
+            background-color: #e2e8f0;
+            color: #334155;
+        }
+        .btn-secondary:hover { background-color: #cbd5e1; }
+
+        .btn-success {
+            background-color: #059669;
+            color: white;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
+        }
+        .btn-success:hover { background-color: #047857; }
+
+        @media print {
+            body { background: #fff; padding: 0; }
+            .app-container { box-shadow: none; border: none; max-width: 100%; }
+            .wizard-progress, .wizard-footer { display: none; }
+            .form-section-content { display: block !important; page-break-after: always; padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header class="app-header">
+        <div>
+            <h1>Adult Wound Assessment & Healing Chart</h1>
+            <p>NHS Greater Glasgow & Clyde (GGC0068 • v3.2)</p>
+        </div>
+        <div class="badge">Mandatory 7-Day Review</div>
+    </header>
+
+    <nav class="wizard-progress">
+        <button type="button" class="progress-step active" onclick="switchStep(0)">
+            <div class="step-number">1</div>
+            <span class="step-label">Initial & Body Map</span>
+        </button>
+        <button type="button" class="progress-step" onclick="switchStep(1)">
+            <div class="step-number">2</div>
+            <span class="step-label">Guidelines</span>
+        </button>
+        <button type="button" class="progress-step" onclick="switchStep(2)">
+            <div class="step-number">3</div>
+            <span class="step-label">Measurements</span>
+        </button>
+        <button type="button" class="progress-step" onclick="switchStep(3)">
+            <div class="step-number">4</div>
+            <span class="step-label">Healing Plan</span>
+        </button>
+        <button type="button" class="progress-step" onclick="switchStep(4)">
+            <div class="step-number">5</div>
+            <span class="step-label">Dressing Log</span>
+        </button>
+    </nav>
+
+    <form id="enhancedWoundForm">
+
+        <!-- STEP 1: Assessment & Body Map -->
+        <section class="form-section-content active" id="step-0">
+            <h2>Patient Identification & Assessor Information</h2>
+            <p class="instruction-text">Enter core metadata and complete the wound body map indexing.</p>
+            
+            <div class="grid-4">
+                <div class="form-group"><label>Surname</label><input type="text" id="p_surname"></div>
+                <div class="form-group"><label>Forename</label><input type="text" id="p_forename"></div>
+                <div class="form-group"><label>CHI Number</label><input type="text" id="p_chi"></div>
+                <div class="form-group"><label>Sex</label><input type="text" id="p_sex"></div>
+            </div>
+            <div class="grid-4">
+                <div class="form-group"><label>DoB</label><input type="date" id="p_dob"></div>
+                <div class="form-group"><label>Care Setting</label><input type="text" id="p_setting"></div>
+                <div class="form-group" style="grid-column: span 2;"><label>Ward / Department</label><input type="text" id="p_ward"></div>
+            </div>
+
+            <h2 style="margin-top:30px;">Factors Delaying Healing</h2>
+            <p class="instruction-text">Select all factors that could delay healing to address in the care plan:</p>
+            <div class="checkbox-grid">
+                <label class="checkbox-card"><input type="checkbox" name="delay" value="Anaemia"> Anaemia</label>
+                <label class="checkbox-card"><input type="checkbox" name="delay" value="Anti-Coagulants"> Anti-Coagulants</label>
+                <label class="checkbox-card"><input type="checkbox" name="delay" value="Chemotherapy"> Chemotherapy</label>
+                <label class="checkbox-card"><input type="checkbox" name="delay" value="Circulatory Disease"> Circulatory Disease</label>
+                <label class="checkbox-card"><input type="checkbox" name="delay" value="Diabetes"> Diabetes</label>
+                <label class="checkbox-card"><input type="checkbox" name="delay" value="Immobility"> Immobility</label>
+                <label class="checkbox-card"><input type="checkbox" name="delay" value="Inotropes"> Inotropes</label>
+                <label class="checkbox-card"><input type="checkbox" name="delay" value="Medication"> Medication</label>
+                <label class="checkbox-card"><input type="checkbox" name="delay" value="Oedema"> Oedema</label>
+                <label class="checkbox-card"><input type="checkbox" name="delay" value="Poor Nutrition"> Poor Nutrition</label>
+                <label class="checkbox-card"><input type="checkbox" name="delay" value="Respiratory"> Respiratory</label>
+                <label class="checkbox-card"><input type="checkbox" name="delay" value="Steroids"> Steroids</label>
+                <label class="checkbox-card"><input type="checkbox" name="delay" value="Wound Infection"> Wound Infection</label>
+            </div>
+            <div class="form-group" style="margin-top:20px;">
+                <label>Allergies, Sensitivities, Other (i.e. concordance issues, obesity):</label>
+                <input type="text" id="allergies">
+            </div>
+
+            <h2 style="margin-top:30px;">Anatomical Body Map & Index</h2>
+            <p class="instruction-text">Mark wound with a number and match with the corresponding type below:</p>
+            <div class="body-map-container">
+                <div class="svg-box"><label>Anterior View</label>
+                    <svg viewBox="0 0 100 160"><ellipse cx="50" cy="14" rx="10" ry="12" fill="#e2e8f0" stroke="#4c6272" stroke-width="1.5"/><path d="M 38 28 Q 50 25 62 28 L 68 65 L 56 68 L 53 95 L 55 145 L 45 145 L 47 95 L 44 68 L 32 65 Z" fill="#e2e8f0" stroke="#4c6272" stroke-width="1.5"/></svg>
+                </div>
+                <div class="svg-box"><label>Posterior View</label>
+                    <svg viewBox="0 0 100 160"><ellipse cx="50" cy="14" rx="10" ry="12" fill="#e2e8f0" stroke="#4c6272" stroke-width="1.5"/><path d="M 38 28 Q 50 25 62 28 L 68 65 L 56 68 L 53 95 L 55 145 L 45 145 L 47 95 L 44 68 L 32 65 Z" fill="#e2e8f0" stroke="#4c6272" stroke-width="1.5"/></svg>
+                </div>
+                <div class="svg-box"><label>Lateral / Medial</label>
+                    <svg viewBox="0 0 100 160"><ellipse cx="50" cy="14" rx="8" ry="12" fill="#e2e8f0" stroke="#4c6272" stroke-width="1.5"/><path d="M 42 28 Q 50 26 58 28 L 56 65 L 58 145 L 42 145 L 44 65 Z" fill="#e2e8f0" stroke="#4c6272" stroke-width="1.5"/></svg>
+                </div>
+            </div>
+
+            <table class="modern-table">
+                <tr><th>Wound Type</th><th>Assigned Number</th><th>Wound Type</th><th>Assigned Number</th></tr>
+                <tr><td>Abscess</td><td><input type="text"></td><td>Pressure Ulcer (state grade)</td><td><input type="text"></td></tr>
+                <tr><td>Burn</td><td><input type="text"></td><td>Skin Tear</td><td><input type="text"></td></tr>
+                <tr><td>Foot Ulcer</td><td><input type="text"></td><td>Surgical Wound</td><td><input type="text"></td></tr>
+                <tr><td>Leg Ulcer (ensure full assessment)</td><td><input type="text"></td><td>Trauma</td><td><input type="text"></td></tr>
+                <tr><td>Moisture Damage</td><td><input type="text"></td><td>Other & specify</td><td><input type="text"></td></tr>
+            </table>
+
+            <h2 style="margin-top:25px;">Assessor Details</h2>
+            <div class="grid-4">
+                <div class="form-group"><label>Name</label><input type="text" id="assessor_name"></div>
+                <div class="form-group"><label>Signature</label><input type="text" id="assessor_sig"></div>
+                <div class="form-group"><label>Designation</label><input type="text" id="assessor_desig"></div>
+                <div class="form-group"><label>Date</label><input type="date" id="assessor_date"></div>
+            </div>
+        </section>
+
+        <!-- STEP 2: Clinical Guidelines -->
+        <section class="form-section-content" id="step-1">
+            <h2>Clinical Guidance & Protocols</h2>
+            <p class="instruction-text">Review measurement instructions and descriptors before performing clinical assessment.</p>
+            
+            <ul style="font-size: 14px; padding-left: 20px; line-height: 1.8; color: #334155; margin-bottom: 25px;">
+                <li><strong>Mandatory Completion:</strong> Required for all ongoing wound interventions, reviewed at least every 7 days.</li>
+                <li><strong>Dimensions:</strong> Measure in cm/mm using a single-use disposable tape measure. <em>Do not reuse multi-patient tape measures.</em>
+                    <ul style="padding-left: 20px; margin-top: 4px;">
+                        <li>Length: Head to toe</li>
+                        <li>Width: Right to left</li>
+                        <li>Depth: Deepest point perpendicular to surface</li>
+                    </ul>
+                </li>
+                <li><strong>Tracking & Undermining:</strong> Use clock-face coordinate system (12 o'clock aligns with head/top of wound, 3 o'clock to patient's right side).</li>
+                <li><strong>Cavity Wounds:</strong> Gently and loosely insert dressing; do not pack tightly to avoid forming plugs that block exudate drainage.</li>
+                <li><strong>Two-Week Rule:</strong> If wound has not progressed within two weeks, refer to relevant wound specialists.</li>
+            </ul>
+
+            <h2>Exudate Descriptors Reference</h2>
+            <table class="modern-table">
+                <tr><th>Descriptor</th><th>Clinical Description</th></tr>
+                <tr><td><strong>None</strong></td><td>Wound tissues dry</td></tr>
+                <tr><td><strong>Low</strong></td><td>Wound tissues wet, moisture evenly distributed, &lt;25% of dressing soiled</td></tr>
+                <tr><td><strong>Medium</strong></td><td>Wound tissues saturated, 25%-75% of dressing soiled</td></tr>
+                <tr><td><strong>High</strong></td><td>Wound tissues bathed in fluid, freely expressed, &gt;75% of dressing soiled</td></tr>
+                <tr><td><strong>Serous</strong></td><td>Clear, light colour, thin, watery</td></tr>
+                <tr><td><strong>Haemoserous</strong></td><td>Light red to pink, thin, watery</td></tr>
+                <tr><td><strong>Purulent / Pus</strong></td><td>Yellow, tan to green, thick, opaque</td></tr>
+            </table>
+        </section>
+
+        <!-- STEP 3: Measurement Chart -->
+        <section class="form-section-content" id="step-2">
+            <h2>Weekly Wound Measurement Chart</h2>
+            <p class="instruction-text">Complete separate formal assessment at least every 7 days or upon treatment modification.</p>
+            
+            <table class="modern-table">
+                <tr><th>Metric</th><th>Assessment 1</th><th>Assessment 2</th><th>Assessment 3</th></tr>
+                <tr><td><strong>Wound Number</strong></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                <tr><td><strong>Date & Time</strong></td><td><input type="date"></td><td><input type="date"></td><td><input type="date"></td></tr>
+                <tr><td><strong>Pre-dressing Analgesia</strong></td><td><select><option>NO</option><option>YES</option></select></td><td><select><option>NO</option><option>YES</option></select></td><td><select><option>NO</option><option>YES</option></select></td></tr>
+                <tr><td><strong>Length / Width / Depth (cm)</strong></td>
+                    <td>L:<input type="number" step="0.1"> W:<input type="number" step="0.1"> D:<input type="number" step="0.1"></td>
+                    <td>L:<input type="number" step="0.1"> W:<input type="number" step="0.1"> D:<input type="number" step="0.1"></td>
+                    <td>L:<input type="number" step="0.1"> W:<input type="number" step="0.1"> D:<input type="number" step="0.1"></td>
+                </tr>
+                <tr><td><strong>Tracking / Undermining</strong></td>
+                    <td><label><input type="checkbox"> Tracking</label> <label><input type="checkbox"> Undermining</label></td>
+                    <td><label><input type="checkbox"> Tracking</label> <label><input type="checkbox"> Undermining</label></td>
+                    <td><label><input type="checkbox"> Tracking</label> <label><input type="checkbox"> Undermining</label></td>
+                </tr>
+                <tr><th colspan="4">Wound Bed Tissue Breakdown (Total must = 100%)</th></tr>
+                <tr><td>Necrotic (black) [%]</td><td><input type="number" value="0"></td><td><input type="number" value="0"></td><td><input type="number" value="0"></td></tr>
+                <tr><td>Sloughy (yellow/green) [%]</td><td><input type="number" value="0"></td><td><input type="number" value="0"></td><td><input type="number" value="0"></td></tr>
+                <tr><td>Granulating (red) [%]</td><td><input type="number" value="0"></td><td><input type="number" value="0"></td><td><input type="number" value="0"></td></tr>
+                <tr><td>Epithelialising (pink) [%]</td><td><input type="number" value="0"></td><td><input type="number" value="0"></td><td><input type="number" value="0"></td></tr>
+            </table>
+        </section>
+
+        <!-- STEP 4: Healing Plan -->
+        <section class="form-section-content" id="step-3">
+            <h2>Person-Centred Wound Healing Plan</h2>
+            <p class="instruction-text">Complete on initial assessment and update whenever the treatment regime is altered.</p>
+            
+            <div class="grid-2">
+                <div class="form-group"><label>Wound Number</label><input type="text"></div>
+                <div class="form-group"><label>Date Completed</label><input type="date"></div>
+            </div>
+
+            <table class="modern-table" style="margin-top:10px;">
+                <tr><th style="width:30%;">Component</th><th>Prescription & Care Plan Details</th></tr>
+                <tr><td><strong>Cleansing Method</strong></td><td><input type="text" placeholder="e.g. Saline rinse"></td></tr>
+                <tr><td><strong>Surrounding Skin Care</strong></td><td><input type="text" placeholder="e.g. Skin barrier film / emollients"></td></tr>
+                <tr><td><strong>Primary Dressing Choice</strong></td><td><textarea placeholder="Dressing type, size, quantity inserted into cavity..."></textarea></td></tr>
+                <tr><td><strong>Secondary Dressing Choice</strong></td><td><input type="text"></td></tr>
+                <tr><td><strong>Frequency of Change</strong></td><td><input type="text"></td></tr>
+                <tr><td><strong>Rationale & Sensitivities</strong></td><td><textarea></textarea></td></tr>
+                <tr><td><strong>Agreed with Patient/Carer?</strong></td><td><select><option>YES</option><option>NO</option></select></td></tr>
+            </table>
+        </section>
+
+        <!-- STEP 5: Dressing Change Log -->
+        <section class="form-section-content" id="step-4">
+            <h2>Adult Wound Dressing Change Log</h2>
+            <p class="instruction-text">To be completed at EVERY individual dressing change.</p>
+            
+            <table class="modern-table">
+                <tr>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Wound #</th>
+                    <th>Ribbons / Sheets Removed</th>
+                    <th>Unplanned Reason / Observations</th>
+                    <th>Sign, Print, Designation</th>
+                </tr>
+                <tr>
+                    <td><input type="date"></td>
+                    <td><input type="time"></td>
+                    <td><input type="text" style="width:60px;"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                </tr>
+                <tr>
+                    <td><input type="date"></td>
+                    <td><input type="time"></td>
+                    <td><input type="text" style="width:60px;"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                </tr>
+            </table>
+        </section>
+
+        <!-- Wizard Navigation Footer -->
+        <footer class="wizard-footer">
+            <button type="button" class="btn btn-secondary" id="prevBtn" onclick="nextPrev(-1)" style="visibility: hidden;">Previous Step</button>
+            <div style="font-size: 13px; font-weight: 600; color: var(--nhs-grey);" id="stepIndicator">Step 1 of 5</div>
+            <div>
+                <button type="button" class="btn btn-primary" id="nextBtn" onclick="nextPrev(1)">Next Step</button>
+                <button type="button" class="btn btn-success" id="printBtn" onclick="window.print()" style="display: none;">Print Full Chart / PDF</button>
+            </div>
+        </footer>
+    </form>
+</div>
+
+<script>
+    let currentTab = 0;
+    showTab(currentTab);
+
+    function showTab(n) {
+        const sections = document.getElementsByClassName("form-section-content");
+        const steps = document.getElementsByClassName("progress-step");
+        
+        for (let i = 0; i < sections.length; i++) {
+            sections[i].classList.remove("active");
+            steps[i].classList.remove("active", "completed");
+            if (i < n) {
+                steps[i].classList.add("completed");
+            }
+        }
+        
+        sections[n].classList.add("active");
+        steps[n].classList.add("active");
+        currentTab = n;
+
+        document.getElementById("prevBtn").style.visibility = (n === 0) ? "hidden" : "visible";
+        document.getElementById("stepIndicator").innerText = `Step ${n + 1} of 5`;
+
+        if (n === (sections.length - 1)) {
+            document.getElementById("nextBtn").style.display = "none";
+            document.getElementById("printBtn").style.display = "inline-flex";
+        } else {
+            document.getElementById("nextBtn").style.display = "inline-flex";
+            document.getElementById("printBtn").style.display = "none";
+        }
+    }
+
+    function nextPrev(n) {
+        const sections = document.getElementsByClassName("form-section-content");
+        if (currentTab + n >= 0 && currentTab + n < sections.length) {
+            showTab(currentTab + n);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+
+    function switchStep(n) {
+        showTab(n);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>
